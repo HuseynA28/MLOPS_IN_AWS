@@ -18,7 +18,6 @@ services:
     volumes:
       - dbdata:/var/lib/mysql
       - ./sql_scripts:/docker-entrypoint-initdb.d
-   
 
   mlflow:
     restart: always
@@ -45,16 +44,19 @@ services:
       - mysql
     volumes:
       - mlflow-data:/mlflow
-
-  pgadmin:
-    image: dpage/pgadmin4
+  mysql-workbench:
+    image: linuxserver/mysql-workbench
+    container_name: mysql_workbench
     environment:
-      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
-      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+      - PUID=1000
+      - PGID=1000
+      - TZ=Etc/UTC
     ports:
-      - "5050:80"
+      - 3000:3000
     networks:
       - mlops-net
+    depends_on:
+      - mysql
 
 networks:
   mlops-net:
