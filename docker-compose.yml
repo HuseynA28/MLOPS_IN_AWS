@@ -1,0 +1,68 @@
+version: '3.8'
+services:
+  mysql:
+    restart: always
+    image: mysql
+    container_name: mlflow_db
+    ports:
+      - "3306:3306"
+    networks:
+      - mlops-net
+    env_file:
+      - .env
+    environment:
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - dbdata:/var/lib/mysql
+      - ./sql_scripts:/docker-entrypoint-initdb.d
+   
+
+  mlflow:
+    restart: always
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    container_name: mlflow_server
+    ports:
+      - "5000:5000"
+    networks:
+      - mlops-net
+    env_file:
+      - .env
+    environment:
+      AWS_ACCESS_KEY_ID: ${AWS_ACCESS_KEY_ID}
+      AWS_SECRET_ACCESS_KEY: ${AWS_SECRET_ACCESS_KEY}
+      AWS_DEFAULT_REGION: ${AWS_DEFAULT_REGION}
+      MLFLOW_S3_ENDPOINT_URL: ${MLFLOW_S3_ENDPOINT_URL}
+      S3_MLFLOW_BUCKET: ${S3_MLFLOW_BUCKET}
+    command: >
+      mlflow server --backend-store-uri mysql+pymysql://${MYSQL_USER}:${MYSQL_PASSWORD}@mysql:3306/${MYSQL_DATABASE}
+      --artifacts-destination s3://${S3_MLFLOW_BUCKET}/ --serve-artifacts --host 0.0.0.0
+    depends_on:
+      - mysql
+    volumes:
+      - mlflow-data:/mlflow
+
+  pgadmin:
+    image: dpage/pgadmin4
+    environment:
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
+    ports:
+      - "5050:80"
+    networks:
+      - mlops-net
+
+networks:
+  mlops-net:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.28.0.0/16
+
+volumes:
+  mlflow-data:
+  dbdata:
