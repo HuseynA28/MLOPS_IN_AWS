@@ -14,7 +14,7 @@ services:
       MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
     volumes:
-      - dbdata:/var/lib/mysql
+      - dbdata:/var/lib/minesql
       - ./sql_scripts:/docker-entrypoint-initdb.d
     networks:
       custom-network:
@@ -66,6 +66,43 @@ services:
     networks:
       custom-network:
         ipv4_address: 172.20.0.4
+
+  db:
+    image: postgres
+    container_name: postgres
+    restart: always
+    environment:
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5433:5432"
+    networks:
+      custom-network:
+        ipv4_address: 172.20.0.5
+    volumes:
+      - dbdata:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    container_name: adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      custom-network:
+        ipv4_address: 172.20.0.6
+
+  grafana:
+    image: grafana/grafana-enterprise
+    user: "472"
+    ports:
+      - "3000:3000"
+    volumes:
+    - ./config/grafana_datasources.yaml:/etc/grafana/provisioning/datasources/datasource.yaml:ro
+    - ./config/grafana_dashboards.yaml:/etc/grafana/provisioning/dashboards/dashboards.yaml:ro
+    - ./dashboards:/opt/grafana/dashboards
+    networks:
+      custom-network:
+        ipv4_address: 172.20.0.7
 
 networks:
   custom-network:
