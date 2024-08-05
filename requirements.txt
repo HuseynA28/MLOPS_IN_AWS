@@ -6,18 +6,23 @@ scikit-learn
 psycopg2-binary
 pymysql
 cryptography
+#evidently 
 snowflake-connector-python
-prefect
+#prefect
 tqdm
 requests
 joblib
 pyarrow
-psycopg
-evidently 
-pandas
-numpy
 jupyter
+jupyterlab
+psycopg
 matplotlib
+getenv
+snowflake-ml-python
+python-dotenv
+
+
+
 
 
 

@@ -24,7 +24,7 @@ services:
     restart: always
     build:
       context: .
-      dockerfile: Dockerfile.mlflow
+      dockerfile: Dockerfile.base
     container_name: mlflow_server
     ports:
       - "5000:5000"
@@ -46,23 +46,23 @@ services:
     networks:
       custom-network:
         ipv4_address: 172.20.0.3
-
+    
   jupyter:
-    image: jupyter/datascience-notebook
+    build:
+      context: .
+      dockerfile: Dockerfile.base
     container_name: jupyter
     ports:
-      - "8888:8888"
-    environment:
-      JUPYTER_ENABLE_LAB: "yes"
-      JUPYTER_TOKEN: "password"
+      - "8889:8888"
     depends_on:
       - mlflow
-    command: jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --NotebookApp.token='password' --allow-root
-    user: root
-    restart: always
     volumes:
-      - ./notebooks:/home/jovyan/work
+      - ./notebooks:/home/huseyn/work
       - jupyter-data:/jupyter
+    command: 
+      sh -c "echo Starting Jupyter Lab... &&
+      jupyter lab --ip=0.0.0.0 --port=8888 --no-browser --NotebookApp.token='password' --allow-root"
+
     networks:
       custom-network:
         ipv4_address: 172.20.0.4
@@ -93,6 +93,7 @@ services:
 
   grafana:
     image: grafana/grafana-enterprise
+    container_name: grafana
     user: "472"
     ports:
       - "3000:3000"
